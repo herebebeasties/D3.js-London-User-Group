@@ -96,8 +96,8 @@
 					<h1>Realtime<br/>time series<br/>visualisation</h1>
 					<h3>with D3.js and HTML5 WebSockets</h3>
 					<p>
-						<small><a href="http://herebebeasties.com">Alastair Maw</a><br/>
-						<a href="http://twitter.com/herebebeasties">@herebebeasties</a></small>
+						<small><a target="_blank" href="http://herebebeasties.com">Alastair Maw</a><br/>
+						<a target="_blank" href="http://twitter.com/herebebeasties">@herebebeasties</a></small>
 					</p>
 				</section>
 												
@@ -287,7 +287,7 @@ var path = svg.append("g")
 
 <section>
 	<h3>A note about anti-aliasing</h3>
-	<code class="fragment">shape-rendering: crispEdges;</code>
+	<code>shape-rendering: crispEdges;</code>
 </section>
 
 <section>
@@ -381,7 +381,7 @@ path
 
 <section>
 	<h3>d3.transition</h3>
-	<p>Add <code>.ease("linear")</code> to specify the <a href="http://github.com/mbostock/d3/wiki/Transitions#wiki-d3_ease">easing function</a>.</p>
+	<p>Add <code>.ease("linear")</code> to specify the <a target="_blank" href="http://github.com/mbostock/d3/wiki/Transitions#wiki-d3_ease">easing function</a>.</p>
 	<svg id="gTransition3"/>
 	<script>
 	chart("#gTransition3", [0, n - 1], "linear", function tick2(path, line, data, x) {
@@ -419,15 +419,19 @@ var x_grid = svg.append("g")
 </section>
 
 <section data-state="ShowGraph99">
-	<h3>Putting the chart parts together</h3>
+	<h3>Putting it all together</h3>
 	<svg height="140" width="640" id="g99"/>
+	<br/>
+	<br/>
+	<br/>
+	<p><small><a href="demo.html" target="_blank">open standalone demo</a> &raquo;</small></p>
 </section>
 
 <section>
 	<h2>WebSockets</h2>
 	<ul>
 		<li>Persistent TCP/IP connection to client.</li>
-		<li>Deals with <a href="http://en.wikipedia.org/wiki/NAT_traversal">NAT traversal</a>, etc.</li>
+		<li>Deals with <a target="_blank" href="http://en.wikipedia.org/wiki/NAT_traversal">NAT traversal</a>, etc.</li>
 		<li>HTML5 standard that enjoys <a href="http://caniuse.com/websockets" target="_blank">moderate client support</a>
 		(with the notable exceptions of Android, IE9-).</li>
 		<li>Easy-to-use API.</li>
@@ -484,13 +488,13 @@ function WebSocketDataProvider(ws_url, func_process_json) {
 <section>
 	<h2>WebSocket Servers</h2>
 	<table>
-		<tr><td>C#/.NET</td><td><a href="http://msdn.microsoft.com/en-us/library/hh159285.aspx">System.Net.WebSockets</a> in .NET 4.5
+		<tr><td>C#/.NET</td><td><a target="_blank" href="http://msdn.microsoft.com/en-us/library/hh159285.aspx">System.Net.WebSockets</a> in .NET 4.5
 			<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(on Windows 8/Server 2012 only)
-			<br/>or <a href="http://alchemywebsockets.net/">Alchemy WebSockets</a></td></tr>
-		<tr><td>Python</td><td><a href="http://www.tornadoweb.org/en/stable/">Tornado</a> - <a href="http://www.tornadoweb.org/en/stable/websocket.html">tornado.websocket</a></td></tr>
-		<tr><td>C++</td><td><a href="http://www.zaphoyd.com/websocketpp">WebSocket++</a> (boost::asio)</td></tr>
-		<tr><td>Node.js</td><td><a href="http://socket.io">Socket.IO</a></td></tr>
-		<tr><td>Java</td><td><a href="https://github.com/mrniko/netty-socketio">Netty-socketio</a></td></tr>
+			<br/>or <a target="_blank" href="http://alchemywebsockets.net/">Alchemy WebSockets</a></td></tr>
+		<tr><td>Python</td><td><a target="_blank" href="http://www.tornadoweb.org/en/stable/">Tornado</a> - <a href="http://www.tornadoweb.org/en/stable/websocket.html">tornado.websocket</a></td></tr>
+		<tr><td>C++</td><td><a target="_blank" href="http://www.zaphoyd.com/websocketpp">WebSocket++</a> (boost::asio)</td></tr>
+		<tr><td>Node.js</td><td><a target="_blank" href="http://socket.io">Socket.IO</a></td></tr>
+		<tr><td>Java</td><td><a target="_blank" href="https://github.com/mrniko/netty-socketio">Netty-socketio</a></td></tr>
 	</table>
 </section>
 
@@ -498,7 +502,7 @@ function WebSocketDataProvider(ws_url, func_process_json) {
 	<h2>web-socket-js</h2>
 	<p>"Polyfill" for older browsers (IE8+, Firefox 3+).</p>
 	<p>Gracefully fall-back to Flash Player 10.</p>
-	<p><a href="http://github.com/gimite/web-socket-js">http://github.com/gimite/web-socket-js</a></p>
+	<p><a target="_blank" href="http://github.com/gimite/web-socket-js">http://github.com/gimite/web-socket-js</a></p>
 </section>
 
 <section>
@@ -507,8 +511,8 @@ function WebSocketDataProvider(ws_url, func_process_json) {
 	<p>Provides fall-backs to Flash, AJAX long polling, Flash, JSONP polling, etc.</p>
 	<p>Different API.</p>
 	<p>Extremely comprehensive compatibility.</p>
-	<p><a href="http://socket.io">http://socket.io</a></p>
-	<p>(<a href="http://davidwalsh.name/websocket">http://davidwalsh.name/websocket</a> is worth a read)</p>
+	<p><a target="_blank" href="http://socket.io">http://socket.io</a></p>
+	<p>(<a target="_blank" href="http://davidwalsh.name/websocket">http://davidwalsh.name/websocket</a> is worth a read)</p>
 </section>
 
 <section>
@@ -529,15 +533,15 @@ socket.on('message', function(data) {
 <section>
 	<h2>Miscellany</h2>
 	<ul>
-		<li>Auto-fit chart on browser resize: <a href="http://bost.ocks.org/mike/chart">bost.ocks.org/mike/chart</a></li>
-		<li>Cubism: <a href="http://square.github.io/cubism">square.github.io/cubism</a></li>
+		<li>Auto-fit chart on browser resize: <a target="_blank" href="http://bost.ocks.org/mike/chart">bost.ocks.org/mike/chart</a></li>
+		<li>Cubism: <a target="_blank" href="http://square.github.io/cubism">square.github.io/cubism</a></li>
 	</ul>
 	<img src="cubism.png" width="982" height="320"/>
 </section>
 
 <section>
 	<h1>Questions?</h1>
-	<a href="https://github.com/herebebeasties">github.com/herebebeasties</a>
+	<a target="_blank" href="https://github.com/herebebeasties">github.com/herebebeasties</a>
 </section>
 			</div>
 
