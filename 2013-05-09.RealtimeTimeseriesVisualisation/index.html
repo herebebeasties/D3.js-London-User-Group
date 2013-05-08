@@ -600,7 +600,7 @@ socket.on('message', function(data) {
 				{
 					ws_data.close();
 				}
-				ws_data = new WebSocketDataProvider('ws://localhost:8000/GraphSocket',
+				ws_data = new WebSocketDataProvider('ws://' + window.location.host + '/GraphSocket',
 					function(update){
 						timeseries_map[update.graph_id].push({
 							time: new Date(update.timestamp),
