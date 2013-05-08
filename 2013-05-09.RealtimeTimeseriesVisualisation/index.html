@@ -68,7 +68,7 @@
 
 			  svg.append("defs").append("clipPath")
 				  .attr("id", "clip")
-				.append("rect")
+				  .append("rect")
 				  .attr("width", width)
 				  .attr("height", height);
 
@@ -138,9 +138,9 @@ Map continuous input domain to output range.
   * `d3.scale.quantize()`
     * Like linear, but with discrete outputs
   * `d3.scale.quantile()`
-    * Useful for percentilse
+    * Useful for percentiles
   * `d3.scale.threshold()`
-    * Like quantize, only let you map arbitrary subsets of the domain to discrete outputs
+    * Like quantize, only lets you map arbitrary subsets of the domain to discrete outputs
 	</script>
 </section>
 
@@ -154,7 +154,7 @@ Map continuous input domain to output range.
 
 * `d3.scale.category10() 20() 20b() 20c()`
   * Maps to colours
-  * See also ColorBrewer, which D3 ships with.
+  * See also ColorBrewer, which D3 ships with
 	</script>
 </section>
 
@@ -612,7 +612,7 @@ socket.on('message', function(data) {
 					// Clean up properly
 					graph.done = true;
 				}
-				graph = new StreamingGraph(timeseries_map['foo'], '#g99', 60000, 750, 7);
+				graph = new StreamingGraph(timeseries_map['foo'], '#g99', 60000, 2000, 7);
 			});
 			
 			var wibbleData = [];
