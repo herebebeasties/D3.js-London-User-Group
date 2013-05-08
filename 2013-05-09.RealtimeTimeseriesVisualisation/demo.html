@@ -10,7 +10,16 @@
 <body>
 	<svg height="120" width="98%" id="g1"/>
 	<script>
-		var graph = new StreamingGraph('#g1', 60000, 750, 20);
+		var data = [];
+		var ws_data = WebSocketDataProvider('ws://localhost:8000/GraphSocket',
+			function(update){
+				data.push({
+					time: new Date(update.timestamp),
+					value: update.value
+				});
+			});
+
+			var graph = new StreamingGraph(data, '#g1', 60000, 750, 999);
 	</script>
 </body>
 </html>

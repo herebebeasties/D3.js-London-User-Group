@@ -78,7 +78,7 @@ function StreamingGraph(data, selector, duration, tick_rate, error_threshold) {
         .range([height, 0]);
         
     var line = d3.svg.line()
-        .interpolate("linear")
+        .interpolate("basis")
         .x(function(d, i) { return x(d.time); })
         .y(function(d, i) { return y(d.value); });
     
@@ -90,7 +90,8 @@ function StreamingGraph(data, selector, duration, tick_rate, error_threshold) {
         .attr("id", "clip" + uid)
         .append("rect")
         .attr("width", width)
-        .attr("height", height);
+        .attr("height", height + 10)
+        .attr("transform", "translate(0,-5)");  // Allow for thick lines
     
     var x_grid = svg.append("g")
         .attr("class", "grid")
