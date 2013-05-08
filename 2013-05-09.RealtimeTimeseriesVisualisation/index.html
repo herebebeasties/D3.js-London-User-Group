@@ -375,7 +375,7 @@ path
     .transition()
     .duration(750)
     .attr("transform", "translate(" + x(-1) + ")")
-    .each("end", function() { tick2(path, line, data, x); });
+    .each("end", function() { tick(); /* do it all again */ });
 	</code></pre>
 </section>
 
@@ -384,7 +384,7 @@ path
 	<p>Add <code>.ease("linear")</code> to specify the <a target="_blank" href="http://github.com/mbostock/d3/wiki/Transitions#wiki-d3_ease">easing function</a>.</p>
 	<svg id="gTransition3"/>
 	<script>
-	chart("#gTransition3", [0, n - 1], "linear", function tick2(path, line, data, x) {
+	chart("#gTransition3", [0, n - 1], "linear", function tick3(path, line, data, x) {
 
 	  // push a new data point onto the back
 	  data.push(random());
@@ -397,7 +397,7 @@ path
 		  .duration(750)
 		  .ease("linear")
 		  .attr("transform", "translate(" + x(-1) + ")")
-		  .each("end", function() { tick2(path, line, data, x); });
+		  .each("end", function() { tick3(path, line, data, x); });
 
 	  // pop the old data point off the front
 	  data.shift();
