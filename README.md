@@ -7,7 +7,7 @@ To run this you'll need to run the `setup.py` script that comes with
 [Tornado][1], and then run `go.py` from the root directory, which will spawn
 a webserver on port 8000 by default (change this with --port=nnnn)
 
-Then navigate to http://localhost:8000/ in your [WebSocket-capable][2]
+Then navigate to [localhost:8000](http://localhost:8000) in your [WebSocket-capable][2]
 web browser of choice.
 
 ### What's here so far?
