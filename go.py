@@ -141,7 +141,7 @@ class TimerClass(threading.Thread):
         while not self.event.is_set():
             self.current += random.randrange(-2, 3);
             self.current = min(10, max(0, self.current))
-            self.timeseries.add(Point("foo", time.time() * 1000, self.current))
+            self.timeseries.add(Point("foo", int(round(time.time() * 1000.0)), self.current))
             self.event.wait( 1 )
 
     def stop(self):
