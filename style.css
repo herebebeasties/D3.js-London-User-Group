@@ -1,0 +1,24 @@
+@import url(http://fonts.googleapis.com/css?family=Roboto+Slab:300,100);
+
+body {
+	background: white url('common/monster-black.png') no-repeat bottom right !important;
+  	font-family: "Roboto Slab", sans-serif;
+    font-weight: 100;
+    font-size: 2em;
+    padding: 4em;
+}
+
+#herebebeasties {
+	position: absolute;
+	bottom: 2em;
+}
+
+a {
+	color: #00a;
+	text-decoration: none;
+}
+
+a:hover {
+	color: #a00;
+	text-shadow: 0 1px 5px #ccc;
+}

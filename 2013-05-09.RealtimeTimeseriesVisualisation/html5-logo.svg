@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 15.1.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 width="567px" height="800px" viewBox="158.307 0 283.386 400" enable-background="new 158.307 0 283.386 400"
+	 xml:space="preserve">
+
+     <filter id="drop-shadow" x="-5%" y="-5%" width="150%" height="150%">
+         <feFlood id="dropShadowColor" flood-color="black" flood-opacity="0.5" result="floodFill"/>
+         <feComposite in2="SourceAlpha" in="floodFill" operator="in" result="coloredAlpha" />
+         <feGaussianBlur in="coloredAlpha" stdDeviation="8" result="blur"/>
+         <feComposite in="blur" in2="SourceGraphic" result="maskedOffsetBlur" operator="out" />
+
+         <feMerge>
+             <feMergeNode in="maskedOffsetBlur"/>
+             <feMergeNode in="SourceGraphic"/>
+         </feMerge>
+     </filter>
+
+<g id="logo" filter='url(#drop-shadow)'>
+	<title>HTML5 Logo</title>
+	<polygon fill="#E44D26" points="210.021,330.324 190,105.761 410,105.761 389.957,330.288 299.865,355.265 	"/>
+	<polygon fill="#F16529" points="300,336.174 372.798,315.991 389.927,124.123 300,124.123 	"/>
+	<polygon fill="#EBEBEB" points="300,207.41 263.556,207.41 261.038,179.207 300,179.207 300,151.665 299.905,151.665 
+		230.938,151.665 231.598,159.054 238.367,234.951 300,234.951 	"/>
+	<polygon fill="#EBEBEB" points="300,278.938 299.879,278.971 269.206,270.688 267.245,248.723 252.34,248.723 239.598,248.723 
+		243.457,291.967 299.874,307.629 300,307.593 	"/>
+	<path d="M210.469,44.735h13.996v13.828h12.803V44.735h13.997V86.61h-13.997V72.588h-12.803V86.61H210.47L210.469,44.735
+		L210.469,44.735z"/>
+	<path d="M269.671,58.622H257.35V44.735h38.646v13.887h-12.327V86.61h-13.998V58.622L269.671,58.622z"/>
+	<path d="M302.129,44.735h14.595l8.978,14.714l8.969-14.714h14.6V86.61H335.33V65.854l-9.629,14.889h-0.241l-9.636-14.889V86.61
+		h-13.695V44.735z"/>
+	<path d="M356.235,44.735h14v28.034h19.684V86.61h-33.684V44.735z"/>
+	<polygon fill="#FFFFFF" points="299.905,207.41 299.905,234.951 333.82,234.951 330.622,270.671 299.905,278.961 299.905,307.615 
+		356.367,291.967 356.78,287.313 363.253,214.806 363.925,207.41 356.504,207.41 	"/>
+	<polygon fill="#FFFFFF" points="299.905,151.665 299.905,168.77 299.905,179.139 299.905,179.207 366.343,179.207 366.343,179.207 
+		366.431,179.207 366.983,173.016 368.238,159.054 368.897,151.665 	"/>
+</g>
+</svg>

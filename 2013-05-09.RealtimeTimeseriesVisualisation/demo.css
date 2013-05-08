@@ -1,0 +1,43 @@
+svg {
+	font-size: 9px;
+}
+
+svg > .error {
+	background: #fee0;
+}
+
+div.slides svg {
+	zoom: 1 !important;
+}
+
+.line {
+	fill: none;
+	stroke: #000;
+	stroke-width: 1.5px;
+}
+
+.line.error {
+	stroke: #f00;
+	stroke-width: 3px;
+}
+
+.grid .tick {
+	stroke: #ccc;
+	stroke-width: 1px;
+	stroke-opacity: 0.25;
+	shape-rendering: crispEdges;
+}
+
+.grid path {
+	stroke-width: 0;
+}
+
+.axis path, .axis line {
+	fill: none;
+	stroke: #888;
+	shape-rendering: crispEdges;
+}
+
+.axis text {
+	fill: #888;
+}

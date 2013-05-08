@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<html>
+<head>
+	<script src="../d3/d3.js" charset="utf-8"></script>
+	<script src="websocket.js"></script>
+	<script src="streaming_graph.js"></script>
+	<link rel="stylesheet" href="demo.css" />
+</head>
+<body>
+	<svg height="120" width="98%" id="g1"/>
+	<script>
+		var graph = new StreamingGraph('#g1', 60000, 750, 20);
+	</script>
+</body>
+</html>

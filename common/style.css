@@ -1,0 +1,30 @@
+@import url(http://fonts.googleapis.com/css?family=Roboto+Slab:300,100);
+
+#contactDetails img {
+	background: none;
+	border: none;
+	width: 64px;
+	height: 64px;
+}
+
+#contactDetails td {
+	vertical-align: middle;
+}
+
+.contactDetails body {
+	background: black url('monster.png') no-repeat bottom right !important;
+}
+
+/**
+ * Overrides for black theme for reveal.js.
+ */
+body {
+  /* true black, better for projectors */
+  background: #000000;
+  background-color: #000000;
+}
+
+.reveal {
+  font-family: "Roboto Slab", sans-serif;
+  font-weight: 100;
+}

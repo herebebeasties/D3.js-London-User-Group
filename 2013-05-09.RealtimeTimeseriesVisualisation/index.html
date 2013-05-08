@@ -1,0 +1,906 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+
+		<title>Realtime time series visualisation</title>
+
+		<meta name="description" content="Realtime timeseries visualisation using d3.js and HTML5 websockets>
+		<meta name="author" content="Alastair Maw">
+
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<link rel="stylesheet" href="../reveal.js/css/reveal.min.css" />
+		<link rel="stylesheet" href="../reveal.js/css/theme/night.css" id="theme" />
+		<link rel="stylesheet" href="../common/style.css" id="theme" />
+
+		<!-- For syntax highlighting -->
+		<link rel="stylesheet" href="../reveal.js/lib/css/zenburn.css">
+
+		<!-- If the query includes 'print-pdf', use the PDF print sheet -->
+		<script>
+			document.write( '<link rel="stylesheet" href="../reveal.js/css/print/' + ( window.location.search.match( /print-pdf/gi ) ? 'pdf' : 'paper' ) + '.css" type="text/css" media="print">' );
+		</script>
+
+		<!--[if lt IE 9]>
+		<script src="../reveal.js/lib/js/html5shiv.js"></script>
+		<![endif]-->
+		
+		<!-- D3 streaming graph stuff -->
+		<script src="../d3/d3.js" charset="utf-8"></script>
+		<script src="websocket.js"></script>
+		<script src="streaming_graph.js"></script>
+		<link rel="stylesheet" href="demo-black.css" />
+		<script>
+		// Copied from http://bost.ocks.org/mike/path/
+			var n = 40,
+				random = d3.random.normal(0, .2);
+
+			function chart(selector, domain, interpolation, tick) {
+			  var data = d3.range(n).map(random);
+
+			  var margin = {top: 10, right: 0, bottom: 10, left: 40},
+				  width = 640 - margin.right,
+				  height = 120 - margin.top - margin.bottom;
+
+			  var x = d3.scale.linear()
+				  .domain(domain)
+				  .range([0, width]);
+
+			  var y = d3.scale.linear()
+				  .domain([-1, 1])
+				  .range([height, 0]);
+
+			  var line = d3.svg.line()
+				  .interpolate(interpolation)
+				  .x(function(d, i) { return x(i); })
+				  .y(function(d, i) { return y(d); });
+
+			  var svg = d3.select(selector)
+				  .attr("width", width + margin.left + margin.right)
+				  .attr("height", height + margin.top + margin.bottom)
+				  .style("margin-left", -margin.left + "px")
+				.append("g")
+				  .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+			  svg.append("defs").append("clipPath")
+				  .attr("id", "clip")
+				.append("rect")
+				  .attr("width", width)
+				  .attr("height", height);
+
+			  svg.append("g")
+				  .attr("class", "y axis")
+				  .call(d3.svg.axis().scale(y).ticks(5).orient("left"));
+
+			  var path = svg.append("g")
+				  .attr("clip-path", "url(#clip)")
+				.append("path")
+				  .data([data])
+				  .attr("class", "line")
+				  .attr("d", line);
+
+			  tick(path, line, data, x);
+			}
+		</script>
+	</head>
+
+	<body>
+		<div class="reveal">
+			<div class="slides">
+
+				<section>
+					<h1>Realtime<br/>time series<br/>visualisation</h1>
+					<h3>with D3.js and HTML5 WebSockets</h3>
+					<p>
+						<small><a href="http://herebebeasties.com">Alastair Maw</a><br/>
+						<a href="http://twitter.com/herebebeasties">@herebebeasties</a></small>
+					</p>
+				</section>
+												
+				<section>
+					<h3>Anatomy of a chart</h3>
+					<table style="margin: auto">
+						<tr><td>Data</td></tr>
+						<tr><td>Scales</td><td>(both x &amp; y)</td></tr>
+						<tr><td>Axes</td><td>(plus maybe a grid)</td></tr>
+						<tr><td>Plot</td><td>(function to draw lines, bars, etc.)</td></tr>
+					</table>
+				</section>
+
+				<section>
+					<h2>D3 isn't a chart library</h2>
+					<h3 class="fragment">D3 == Data-Driven Documents</h3>
+				</section>
+
+				<section>
+					<h3>Anatomy of a chart</h3>
+					<table style="margin: auto">
+						<tr><td>Data</td><td>JavaScript objects</td></tr>
+						<tr><td>Scales</td><td>d3.scale.*, d3.time.scale, etc.</td></tr>
+						<tr><td>Axes</td><td>d3.svg.axis(&lt;scale&gt;)</td></tr>
+						<tr><td>Plot</td><td>d3.svg.line()</td></tr>
+					</table>
+				</section>
+
+<section data-markdown>
+	<script type="text/template">
+### Quantitative scales
+Map continuous input domain to output range.
+
+  * `d3.scale.linear()`
+  * `d3.scale.pow().exponent(0.5)`
+  * `d3.scale.log().base(2)`
+    * default base 10
+  * `d3.scale.quantize()`
+    * Like linear, but with discrete outputs
+  * `d3.scale.quantile()`
+    * Useful for percentilse
+  * `d3.scale.threshold()`
+    * Like quantize, only let you map arbitrary subsets of the domain to discrete outputs
+	</script>
+</section>
+
+<section data-markdown>
+	<script type="text/template">
+### Ordinal scales
+
+* Map discrete input domain to output range
+
+* `d3.scale.ordinal().domain([values])`
+
+* `d3.scale.category10() 20() 20b() 20c()`
+  * Maps to colours
+  * See also ColorBrewer, which D3 ships with.
+	</script>
+</section>
+
+<section data-markdown>
+	<script type="text/template">
+### Time scales
+
+* Extends `d3.scale.linear` but using JavaScript [Date](https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Date)
+
+* `d3.time.scale()`  -- local time for axis ticks, etc.
+
+* `d3.time.scale.utc()`
+
+* `d3.time.scale().ticks(d3.time.minutes, 15)`
+	</script>
+</section>
+
+<section data-markdown>
+	<script type="text/template">
+#### Useful functions on most scale types:
+```
+ .clamp();         // Clamps values to the input range
+ .nice();          // Extends domain to start/end on nice values
+ .invert(y);       // Maps back from output range to input domain
+ .ticks([count]);  // Returns tick values (for axis labels)
+```
+#### https://github.com/mbostock/d3/wiki/Scales
+	</script>
+</section>
+
+<section>
+<h2>d3.scale</h2>
+	<pre><code data-trim contenteditable>
+d3.scale.linear()
+	.domain([0, 10])
+	.range([0, width]);
+	</code></pre>
+	<pre class="fragment"><code class="javascript" data-trim contenteditable>
+d3.scale.linear()
+	.domain([0, 10])
+	.range([height, 0]);  // Upside-down: y == 0px is at the top
+	</code></pre>
+</section>
+
+<section data-markdown>
+	<script type="text/template">
+## Axes
+These are dependent on scales for:
+
+ * Range
+
+ * Ticks
+
+ * Tick label formatting
+	</script>
+</section>
+
+<section>
+<h2>d3.scale &amp; d3.axis</h2>
+<h4>(sitting in a tree)</h4>
+	<pre><code data-trim contenteditable>
+var x = d3.scale.linear()
+    .domain([0, 10])     // x-values go from 0 to 10
+    .range([0, width]);
+
+var x_axis = d3.svg.axis()
+    .scale(x)            // Feed the scale into the axis
+    .orient("bottom");   // ...and draw the axis at the bottom
+	</code></pre>
+</section>
+
+<section>
+	<pre><code class="javascript" data-trim contenteditable>
+var svg = d3.select([selector])
+    .append("g");  // Append a &lt;g&gt; element to an &lt;svg&gt; one
+
+var x = d3.scale.linear()
+    .domain([0, 10])
+    .range([0, width]);
+
+var x_axis = svg.append("g")
+    .attr("class", "x axis")      // Styling in CSS
+    .attr("transform", "translate(0," + height + ")")
+    .call(x.axis = d3.svg.axis()
+            .scale(x)
+            .orient("bottom"));
+
+	</code></pre>
+</section>
+
+<section data-state="ShowGraph00">
+	<svg id="g00" width="640" height="140"/>
+</section>
+
+<section data-state="ShowGraph01">
+	<svg id="g01" width="640" height="140"/>
+</section>
+
+<section>
+    <h2>d3.svg.line</h2>
+	<pre><code class="javascript" data-trim contenteditable>
+var line = d3.svg.line()   // make a line object
+    .interpolate("basis")  // B-spline line interpolation
+    .x(function(d, i) { return x(d.x); })
+    .y(function(d, i) { return y(d.y); });
+
+var path = svg.append("g")
+    .append("path")         // Append a &lt;path&gt; element to the &lt;g&gt;
+    .data([data])           // Do the selection.data(...) thing
+    .attr("class", "line")  // Add class to &lt;path&gt; so we can style it
+    .attr("d", line);       // Add &lt;path d=""&gt; data from line object
+	</code></pre>
+</section>
+
+<section data-state="ShowGraph02">
+	<h3>d3.scale, d3.axis &amp; d3.svg.line</h3>
+	<svg id="g02" width="640" height="140"/>
+</section>
+
+<section>
+	<h2>A note about margins</h3>
+	<p>These are a bit of a pain</p>
+	&nbsp;&nbsp;
+	<p class="fragment">
+		You're best off making the primary <tt>width</tt> and <tt>height</tt>
+		variables in your code the &ldquo;plot area&rdquo; part of the chart, not the whole
+		thing - i.e. leave margins for the axes.
+	</p>
+</section>
+
+<section>
+	<h3>A note about anti-aliasing</h3>
+	<code class="fragment">shape-rendering: crispEdges;</code>
+</section>
+
+<section>
+	<h3>Making a tick() function</h3>
+	<p>A tick() method can redraw the axes, data, etc.<p>
+	<p>You <em>could</em> do this per-frame, but D3 can do better.</p>
+</section>
+
+<section>
+	<h3>d3.transition</h3>
+	<p>A transition is a special type of selection.</p>
+	<p>Operators apply over time rather than instantly.</p>
+	<pre><code class="javascript" data-trim contenteditable>
+// From before...
+var line = d3.svg.line()   // make a line object
+    .interpolate("basis")  // B-spline line interpolation
+    .x(function(d, i) { return x(d.x); })
+    .y(function(d, i) { return y(d.y); });
+
+var path = svg.append("g")
+    .append("path")         // Append a &lt;path&gt; element to the &lt;g&gt;
+    .data([data])           // Do the selection.data(...) thing
+    .attr("class", "line")  // Add class to &lt;path&gt; so we can style it
+    .attr("d", line);       // Add &lt;path d=""&gt; data from line object
+
+// And now transition the path...
+path.transition()
+    .duration(750)
+    .attr("d", line)
+    .each("end", function() { tick(); /* do it all again */ });
+	</code></pre>
+	<p>Can use hardware accelerated transforms, etc.</p>
+</section>
+
+<section>
+	<h3>d3.transition</h3>
+	<svg id="gTransition1"/>
+	<script>
+	chart("#gTransition1", [0, n - 1], "linear", function tick1(path, line, data) {
+
+	  // push a new data point onto the back
+	  data.push(random());
+
+	  // pop the old data point off the front
+	  data.shift();
+
+	  // transition the line
+	  path.transition()
+		  .duration(750)
+		  .attr("d", line)
+		  .each("end", function() { tick1(path, line, data); });
+	});
+	</script>
+	<p class="fragment">Hmmm, that looks weird.</p>
+</section>
+
+<section>
+	<h3>d3.transition</h3>
+	<p>Transition the <em>transform</em>, not the path:</p>
+	<svg id="gTransition2"/>
+	<script>
+	chart("#gTransition2", [0, n - 1], "linear", function tick2(path, line, data, x) {
+
+	  // push a new data point onto the back
+	  data.push(random());
+
+	  // redraw the line, and then slide it to the left
+	  path
+		  .attr("d", line)
+		  .attr("transform", null)
+		  .transition()
+		  .duration(750)
+		  .attr("transform", "translate(" + x(-1) + ")")
+		  .each("end", function() { tick2(path, line, data, x); });
+
+	  // pop the old data point off the front
+	  data.shift();
+
+	});
+	</script>
+	<pre><code class="javascript" data-trim contenteditable>
+path
+    .attr("d", line)
+    .attr("transform", null)
+    .transition()
+    .duration(750)
+    .attr("transform", "translate(" + x(-1) + ")")
+    .each("end", function() { tick2(path, line, data, x); });
+	</code></pre>
+</section>
+
+<section>
+	<h3>d3.transition</h3>
+	<p>Add <code>.ease("linear")</code> to specify the <a href="http://github.com/mbostock/d3/wiki/Transitions#wiki-d3_ease">easing function</a>.</p>
+	<svg id="gTransition3"/>
+	<script>
+	chart("#gTransition3", [0, n - 1], "linear", function tick2(path, line, data, x) {
+
+	  // push a new data point onto the back
+	  data.push(random());
+
+	  // redraw the line, and then slide it to the left
+	  path
+		  .attr("d", line)
+		  .attr("transform", null)
+		  .transition()
+		  .duration(750)
+		  .ease("linear")
+		  .attr("transform", "translate(" + x(-1) + ")")
+		  .each("end", function() { tick2(path, line, data, x); });
+
+	  // pop the old data point off the front
+	  data.shift();
+
+	});
+	</script>
+</section>
+
+<section>
+	<h3>Grid lines</h3>
+	<p>These are just axes with a negative tickSize of the height/width of the chart:</p>
+	<pre><code class="javascript" data-trim contenteditable>
+var x_grid = svg.append("g")
+    .attr("class", "grid")         // Make it styleable.
+    .call(x.grid = make_x_axis())  // Factor out axis creation to call
+    .tickSize(-height, 0, 0)       // that from both axis &amp; grid code.
+    .tickFormat(""));              // Don't draw tick labels.
+</code></pre>
+</section>
+
+<section data-state="ShowGraph99">
+	<h3>Putting the chart parts together</h3>
+	<svg height="140" width="640" id="g99"/>
+</section>
+
+<section>
+	<h2>WebSockets</h2>
+	<ul>
+		<li>Persistent TCP/IP connection to client.</li>
+		<li>Deals with <a href="http://en.wikipedia.org/wiki/NAT_traversal">NAT traversal</a>, etc.</li>
+		<li>HTML5 standard that enjoys <a href="http://caniuse.com/websockets" target="_blank">moderate client support</a>
+		(with the notable exceptions of Android, IE9-).</li>
+		<li>Easy-to-use API.</li>
+		<li>Good server-side support (mainly via third-party open source libraries).</li>
+	</ul>
+</section>
+
+<section>
+	<h2>WebSockets</h2>
+	<pre><code class="javascript" data-trim contenteditable>
+function WebSocketDataProvider(ws_url, func_process_json) {
+    var connection = new WebSocket(ws_url);
+    var ping_interval_millis = 2000;
+
+    // Handle message
+    connection.onmessage = function(msg) {
+        if (!msg.data) return;
+        
+        var json_obj = JSON.parse(msg.data);
+        func_process_json(json_obj);
+    };
+
+    // Log errors for diagnostics
+    connection.onerror = function(error) {
+        console.log('WebSocket error: ' + error);
+    };
+
+    // Reconnect if WebSocket dies
+    connection.onclose = function(e) {
+        console.log('WebSocket closed ' +
+            (e.wasClean ? 'cleanly' : 'uncleanly'));
+        setTimeout(function(){
+            WebSocketDataProvider(ws_url, func_process_json);
+        }, 5000);
+    };
+    
+    connection.onopen = function() {
+        connection.send_keep = true;
+        setTimeout(connection.ping, ping_interval_millis);
+    };
+
+    // Send a keep-alive ping every ping_interval ms,
+    // when the connection is open
+    connection.ping = function() {
+        if (connection.readyState == connection.OPEN)
+            connection.send('');
+        if (connection.readyState != connection.CLOSED)
+            setTimeout(connection.ping, ping_interval_millis);
+    };
+}
+</code></pre>
+</section>
+
+<section>
+	<h2>WebSocket Servers</h2>
+	<table>
+		<tr><td>C#/.NET</td><td><a href="http://msdn.microsoft.com/en-us/library/hh159285.aspx">System.Net.WebSockets</a> in .NET 4.5
+			<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(on Windows 8/Server 2012 only)
+			<br/>or <a href="http://alchemywebsockets.net/">Alchemy WebSockets</a></td></tr>
+		<tr><td>Python</td><td><a href="http://www.tornadoweb.org/en/stable/">Tornado</a> - <a href="http://www.tornadoweb.org/en/stable/websocket.html">tornado.websocket</a></td></tr>
+		<tr><td>C++</td><td><a href="http://www.zaphoyd.com/websocketpp">WebSocket++</a> (boost::asio)</td></tr>
+		<tr><td>Node.js</td><td><a href="http://socket.io">Socket.IO</a></td></tr>
+		<tr><td>Java</td><td><a href="https://github.com/mrniko/netty-socketio">Netty-socketio</a></td></tr>
+	</table>
+</section>
+
+<section>
+	<h2>web-socket-js</h2>
+	<p>"Polyfill" for older browsers (IE8+, Firefox 3+).</p>
+	<p>Gracefully fall-back to Flash Player 10.</p>
+	<p><a href="http://github.com/gimite/web-socket-js">http://github.com/gimite/web-socket-js</a></p>
+</section>
+
+<section>
+	<h2>Socket.IO</h2>
+	<p>Uses WebSockets when it can.</p>
+	<p>Provides fall-backs to Flash, AJAX long polling, Flash, JSONP polling, etc.</p>
+	<p>Different API.</p>
+	<p>Extremely comprehensive compatibility.</p>
+	<p><a href="http://socket.io">http://socket.io</a></p>
+	<p>(<a href="http://davidwalsh.name/websocket">http://davidwalsh.name/websocket</a> is worth a read)</p>
+</section>
+
+<section>
+	<h2>Socket.IO</h2>
+	<pre><code class="javascript" data-trim contenteditable>
+var socket = io.connect('http://localhost:1234', {
+    'transports' : [ 'websocket' ],
+    'reconnection delay' : 2000,
+    'force new connection' : true
+});
+
+socket.on('message', function(data) {
+    // Push the data here into the chart
+});
+	</code></pre>
+</section>
+				<!-- Example of nested vertical slides -->
+				<section>
+					<section>
+						<h2>Vertical Slides</h2>
+						<p>
+							Slides can be nested inside of other slides,
+							try pressing <a href="#" class="navigate-down">down</a>.
+						</p>
+						<a href="#" class="image navigate-down">
+							<img width="178" height="238" src="https://s3.amazonaws.com/hakim-static/reveal-js/arrow.png" alt="Down arrow">
+						</a>
+					</section>
+					<section>
+						<h2>Basement Level 1</h2>
+						<p>Press down or up to navigate.</p>
+					</section>
+					<section>
+						<h2>Basement Level 2</h2>
+						<p>Cornify</p>
+						<a class="test" href="http://cornify.com">
+							<img width="280" height="326" src="https://s3.amazonaws.com/hakim-static/reveal-js/cornify.gif" alt="Unicorn">
+						</a>
+					</section>
+					<section>
+						<h2>Basement Level 3</h2>
+						<p>That's it, time to go back up.</p>
+						<a href="#/2" class="image">
+							<img width="178" height="238" src="https://s3.amazonaws.com/hakim-static/reveal-js/arrow.png" alt="Up arrow" style="-webkit-transform: rotate(180deg);">
+						</a>
+					</section>
+				</section>
+
+				<section>
+					<h2>Slides</h2>
+					<p>
+						Not a coder? No problem. There's a fully-featured visual editor for authoring these, try it out at <a href="http://slid.es" target="_blank">http://slid.es</a>.
+					</p>
+				</section>
+
+				<section>
+					<h2>Point of View</h2>
+					<p>
+						Press <strong>ESC</strong> to enter the slide overview.
+					</p>
+					<p>
+						Hold down alt and click on any element to zoom in on it using <a href="http://lab.hakim.se/zoom-js">zoom.js</a>. Alt + click anywhere to zoom back out.
+					</p>
+				</section>
+
+				<section>
+					<h2>Works in Mobile Safari</h2>
+					<p>
+						Try it out! You can swipe through the slides and pinch your way to the overview.
+					</p>
+				</section>
+
+				<section>
+					<h2>Marvelous Unordered List</h2>
+					<ul>
+						<li>No order here</li>
+						<li>Or here</li>
+						<li>Or here</li>
+						<li>Or here</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Fantastic Ordered List</h2>
+					<ol>
+						<li>One is smaller than...</li>
+						<li>Two is smaller than...</li>
+						<li>Three!</li>
+					</ol>
+				</section>
+
+				<section data-markdown>
+					<script type="text/template">
+						## Markdown support
+
+						For those of you who like that sort of thing. Instructions and a bit more info available [here](https://github.com/hakimel/reveal.js#markdown).
+
+						```
+						<section data-markdown>
+						  ## Markdown support
+
+						  For those of you who like that sort of thing.
+						  Instructions and a bit more info available [here](https://github.com/hakimel/reveal.js#markdown).
+						</section>
+						```
+					</script>
+				</section>
+
+				<section id="transitions">
+					<h2>Transition Styles</h2>
+					<p>
+						You can select from different transitions, like: <br>
+						<a href="?transition=cube#/transitions">Cube</a> -
+						<a href="?transition=page#/transitions">Page</a> -
+						<a href="?transition=concave#/transitions">Concave</a> -
+						<a href="?transition=zoom#/transitions">Zoom</a> -
+						<a href="?transition=linear#/transitions">Linear</a> -
+						<a href="?transition=fade#/transitions">Fade</a> -
+						<a href="?transition=none#/transitions">None</a> -
+						<a href="?#/transitions">Default</a>
+					</p>
+				</section>
+
+				<section id="themes">
+					<h2>Themes</h2>
+					<p>
+						Reveal.js comes with a few themes built in: <br>
+						<a href="?theme=sky#/themes">Sky</a> -
+						<a href="?theme=beige#/themes">Beige</a> -
+						<a href="?theme=simple#/themes">Simple</a> -
+						<a href="?theme=serif#/themes">Serif</a> -
+						<a href="?theme=night#/themes">Night</a> -
+						<a href="?#/themes">Default</a>
+					</p>
+					<p>
+						<small>
+							* Theme demos are loaded after the presentation which leads to flicker. In production you should load your theme in the <code>&lt;head&gt;</code> using a <code>&lt;link&gt;</code>.
+						</small>
+					</p>
+				</section>
+
+				<section>
+					<section data-state="alert">
+						<h2>Global State</h2>
+						<p>
+							Set <code>data-state="something"</code> on a slide and <code>"something"</code>
+							will be added as a class to the document element when the slide is open. This lets you
+							apply broader style changes, like switching the background.
+						</p>
+						<a href="#" class="image navigate-down">
+							<img width="178" height="238" src="https://s3.amazonaws.com/hakim-static/reveal-js/arrow.png" alt="Down arrow">
+						</a>
+					</section>
+					<section data-state="blackout">
+						<h2>"blackout"</h2>
+						<a href="#" class="image navigate-down">
+							<img width="178" height="238" src="https://s3.amazonaws.com/hakim-static/reveal-js/arrow.png" alt="Down arrow">
+						</a>
+					</section>
+					<section data-state="soothe">
+						<h2>"soothe"</h2>
+						<a href="#" class="image navigate-next">
+							<img width="178" height="238" src="https://s3.amazonaws.com/hakim-static/reveal-js/arrow.png" alt="Up arrow" style="-webkit-transform: rotate(-90deg);">
+						</a>
+					</section>
+				</section>
+
+				<section data-state="customevent">
+					<h2>Custom Events</h2>
+					<p>
+						Additionally custom events can be triggered on a per slide basis by binding to the <code>data-state</code> name.
+					</p>
+					<pre><code data-trim contenteditable style="font-size: 18px; margin-top: 20px;">
+Reveal.addEventListener( 'customevent', function() {
+	console.log( '"customevent" has fired' );
+} );
+					</code></pre>
+				</section>
+
+				<section>
+					<h2>Clever Quotes</h2>
+					<p>
+						These guys come in two forms, inline: <q cite="http://searchservervirtualization.techtarget.com/definition/Our-Favorite-Technology-Quotations">
+						&ldquo;The nice thing about standards is that there are so many to choose from&rdquo;</q> and block:
+					</p>
+					<blockquote cite="http://searchservervirtualization.techtarget.com/definition/Our-Favorite-Technology-Quotations">
+						&ldquo;For years there has been a theory that millions of monkeys typing at random on millions of typewriters would
+						reproduce the entire works of Shakespeare. The Internet has proven this theory to be untrue.&rdquo;
+					</blockquote>
+				</section>
+
+				<section>
+					<h2>Pretty Code</h2>
+					<pre><code data-trim contenteditable>
+function linkify( selector ) {
+  if( supports3DTransforms ) {
+
+    var nodes = document.querySelectorAll( selector );
+
+    for( var i = 0, len = nodes.length; i &lt; len; i++ ) {
+      var node = nodes[i];
+
+      if( !node.className ) ) {
+        node.className += ' roll';
+      }
+    };
+  }
+}
+					</code></pre>
+					<p>Courtesy of <a href="http://softwaremaniacs.org/soft/highlight/en/description/">highlight.js</a>.</p>
+				</section>
+
+				<section data-state="contactDetails">
+					<table id="contactDetails">
+						<tr><td><img src="../common/GooglePlus.svg" /></td><td><a href="">alastair.maw</a></td></tr>
+						<tr><td><img src="../common/Twitter.svg" /></td><td><a href="http://twitter.com/herebebeasties">@herebebeasties</a></td></tr>
+						<tr><td><img src="../common/Html5.svg" /></td><td><a href="http://herebebeasties.com">herebebeasties.com</a></td></tr>
+						<tr><td><img src="../common/Email.svg" /></td><td><a href="http://herebebeasties.com/about/">website@ the above</a></td></tr>
+						<tr><td><img src="../common/Flickr.svg" /></td><td><a href="">HereBeBeasties</a></td></tr>
+					</table>
+				</section>
+			</div>
+
+		</div>
+
+		<script src="../reveal.js/lib/js/head.min.js"></script>
+		<script src="../reveal.js/js/reveal.min.js"></script>
+
+		<script>
+
+			// Full list of configuration options available here:
+			// https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				width: 800,
+				height: 600,
+				controls: true,
+				progress: true,
+				history: true,
+				center: true,
+				rollingLinks: false,
+				transitionSpeed: 'fast',
+				transition: 'default', // default/cube/page/concave/zoom/linear/fade/none
+
+				// Optional libraries used to extend on reveal.js
+				dependencies: [
+					{ src: '../reveal.js/lib/js/classList.js', condition: function() { return !document.body.classList; } },
+					{ src: '../reveal.js/plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: '../reveal.js/plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: '../reveal.js/plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+					//{ src: '../reveal.js/plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+					{ src: '../reveal.js/plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } },
+					// { src: '../reveal.js/plugin/search/search.js', async: true, condition: function() { return !!document.body.classList; } }
+					// { src: 'plugin/remotes/remotes.js', async: true, condition: function() { return !!document.body.classList; } }
+				]
+			});
+
+			Reveal.addEventListener('ShowGraph99', function() {
+				var node = document.getElementById('g99');
+				while (node.firstChild) {
+				    node.removeChild(node.firstChild);
+				}
+
+			var timeseries_map = [];
+			timeseries_map['foo'] = [];
+
+			var ws_data = WebSocketDataProvider('ws://localhost:8000/GraphSocket',
+				function(update){
+					timeseries_map[update.graph_id].push({
+						time: new Date(update.timestamp),
+						value: update.value
+					});
+				});
+
+				var graph = new StreamingGraph(timeseries_map['foo'], '#g99', 60000, 1000, 7);
+			});
+
+			Reveal.addEventListener('ShowGraph00', function() {
+				var node = document.getElementById('g00');
+				while (node.firstChild) {
+				    node.removeChild(node.firstChild);
+				}
+
+				var svg = d3.select("#g00")
+					.append("g");
+				
+				var x = d3.scale.linear()
+					.domain([0, 10])
+					.range([0, 620]);
+
+				var x_axis = svg.append("g")
+					.attr("class", "x axis")
+					.attr("transform", "translate(10,120)")
+					.call(x.axis = d3.svg.axis()
+							.scale(x)
+							.orient("bottom"));
+				x.axis();
+			});
+			
+			Reveal.addEventListener('ShowGraph01', function() {
+				var node = document.getElementById('g01');
+				while (node.firstChild) {
+				    node.removeChild(node.firstChild);
+				}
+
+				var svg = d3.select("#g01")
+					.append("g")
+					.attr("transform", "translate(30,10)");
+				
+				var x = d3.scale.linear()
+					.domain([0, 10])
+					.range([0, 570]);
+
+				var x_axis = svg.append("g")
+					.attr("class", "x axis")
+					.attr("transform", "translate(30,110)")
+					.call(x.axis = d3.svg.axis()
+							.scale(x)
+							.orient("bottom"));
+
+				var y = d3.scale.linear()
+					.domain([0, 10])
+					.range([110, 0]);
+
+				var y_axis = svg.append("g")
+					.attr("class", "y axis")
+					.attr("transform", "translate(30,0)")
+					.call(y.axis = d3.svg.axis()
+							.scale(y)
+							.ticks(2)
+							.orient("left"));
+			});
+
+			Reveal.addEventListener('ShowGraph02', function() {
+				var node = document.getElementById('g02');
+				while (node.firstChild) {
+				    node.removeChild(node.firstChild);
+				}
+
+				var svg = d3.select("#g02")
+					.append("g")
+					.attr("transform", "translate(30,10)");
+				
+				var x = d3.scale.linear()
+					.domain([0, 10])
+					.range([0, 570]);
+
+				var x_axis = svg.append("g")
+					.attr("class", "x axis")
+					.attr("transform", "translate(30,110)")
+					.call(x.axis = d3.svg.axis()
+							.scale(x)
+							.orient("bottom"));
+
+				var y = d3.scale.linear()
+					.domain([0, 10])
+					.range([110, 0]);
+
+				var y_axis = svg.append("g")
+					.attr("class", "y axis")
+					.attr("transform", "translate(30,0)")
+					.call(y.axis = d3.svg.axis()
+							.scale(y)
+							.ticks(2)
+							.orient("left"));
+				
+				var line = d3.svg.line()   // make a line object
+					.interpolate("basis")  // B-spline line interpolation
+					.x(function(d, i) { return x(d.x); })
+					.y(function(d, i) { return y(d.y); });
+
+				var data = [
+					{x: 0, y: 10},
+					{x: 1, y: 2},
+					{x: 2, y: 4.5},
+					{x: 3, y: 3.5},
+					{x: 4, y: 7.5},
+					{x: 5, y: .5},
+					{x: 6, y: 3},
+					{x: 7, y: 10},
+					{x: 8, y: 1},
+					{x: 9, y: 6},
+					{x: 10, y: 6},
+				];
+				var path = svg.append("g")
+					.append("path")         // Append a &lt;path&gt; element to the &lt;g&gt;
+					.data([data])           // Do the data thing...
+					.attr("class", "line")  // Add class to &lt;path&gt; so we can style it
+					.attr("transform", "translate(30,0)")
+					.attr("d", line);       // Add &lt;path d=""&gt; data from line object
+			});
+
+		</script>
+
+	</body>
+</html>
