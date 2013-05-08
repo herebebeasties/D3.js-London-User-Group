@@ -35,7 +35,7 @@
 		<script src="streaming_graph.js"></script>
 		<link rel="stylesheet" href="demo-black.css" />
 		<script>
-		// Copied from http://bost.ocks.org/mike/path/
+			// Copied from http://bost.ocks.org/mike/path/
 			var n = 40,
 				random = d3.random.normal(0, .2);
 
@@ -530,6 +530,11 @@ socket.on('message', function(data) {
 	</code></pre>
 </section>
 
+<section data-state="ShowWibble">
+	<h3>Doesn't have to be WebSockets...</h3>
+	<svg height="240" width="640" id="gWibble"></svg>
+</section>
+
 <section>
 	<h2>Miscellany</h2>
 	<ul>
@@ -564,6 +569,7 @@ socket.on('message', function(data) {
 				rollingLinks: false,
 				transitionSpeed: 'fast',
 				transition: 'default', // default/cube/page/concave/zoom/linear/fade/none
+				minScale: 0.5,
 
 				// Optional libraries used to extend on reveal.js
 				dependencies: [
@@ -608,7 +614,35 @@ socket.on('message', function(data) {
 				}
 				graph = new StreamingGraph(timeseries_map['foo'], '#g99', 60000, 750, 7);
 			});
-
+			
+			var wibbleData = [];
+			var wibbleChart;
+			
+			window.addEventListener('deviceorientation', function(event) {
+				var now = new Date().valueOf();
+				while (wibbleData.length > 0 && wibbleData[0].time.valueOf() < now - 60000)
+				{
+					wibbleData.shift();
+				}
+				if (wibbleData.length == 0 || wibbleData[wibbleData.length - 1].time.valueOf() < now - 100)
+				{
+					wibbleData.push({time: new Date(), value: (event.gamma * 2 / 360 + 0.5) * 2});
+				}
+			}, false);
+			
+			Reveal.addEventListener('ShowWibble', function() {
+				var node = document.getElementById('gWibble');
+				while (node.firstChild) {
+				    node.removeChild(node.firstChild);
+				}
+				if (wibbleChart)
+				{
+					// Clean up properly
+					wibbleChart.done = true;
+				}
+				wibbleChart = new StreamingGraph(wibbleData, '#gWibble', 60000, 100, 0);				
+			});
+			
 			Reveal.addEventListener('ShowGraph00', function() {
 				var node = document.getElementById('g00');
 				while (node.firstChild) {
@@ -723,7 +757,6 @@ socket.on('message', function(data) {
 					.attr("transform", "translate(30,0)")
 					.attr("d", line);       // Add &lt;path d=""&gt; data from line object
 			});
-
 		</script>
 
 	</body>
