@@ -12,6 +12,8 @@ import mimetypes
 import threading
 import time
 import random
+import signal
+import sys
 
 from tornado.options import define, options
 
@@ -145,17 +147,24 @@ class TimerClass(threading.Thread):
     def stop(self):
         self.event.set()
 
+timer = []
+timer = TimerClass(timeseries)
+
 def main():
     tornado.options.parse_command_line()
     app = Application()
     app.listen(options.port)
-    
     timeseries.onAdd += send_updates
-
-    timer = TimerClass(timeseries)
     timer.start()
+    signal.signal(signal.SIGINT, signal_handler)
 
+    logging.info("Listening on http://localhost:%i/" % options.port)
     tornado.ioloop.IOLoop.instance().start()
+
+def signal_handler(signal, frame):
+    timer.stop()
+    print ""
+    sys.exit(0)
 
 if __name__ == "__main__":
     main()
