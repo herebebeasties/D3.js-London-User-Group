@@ -578,24 +578,35 @@ socket.on('message', function(data) {
 				]
 			});
 
+			var ws_data;
+			var graph;
+
 			Reveal.addEventListener('ShowGraph99', function() {
 				var node = document.getElementById('g99');
 				while (node.firstChild) {
 				    node.removeChild(node.firstChild);
 				}
 
-			var timeseries_map = [];
-			timeseries_map['foo'] = [];
+				var timeseries_map = [];
+				timeseries_map['foo'] = [];
 
-			var ws_data = WebSocketDataProvider('ws://localhost:8000/GraphSocket',
-				function(update){
-					timeseries_map[update.graph_id].push({
-						time: new Date(update.timestamp),
-						value: update.value
+				if (ws_data)
+				{
+					ws_data.close();
+				}
+				ws_data = new WebSocketDataProvider('ws://localhost:8000/GraphSocket',
+					function(update){
+						timeseries_map[update.graph_id].push({
+							time: new Date(update.timestamp),
+							value: update.value
+						});
 					});
-				});
-
-				var graph = new StreamingGraph(timeseries_map['foo'], '#g99', 60000, 750, 7);
+				if (graph)
+				{
+					// Clean up properly
+					graph.done = true;
+				}
+				graph = new StreamingGraph(timeseries_map['foo'], '#g99', 60000, 750, 7);
 			});
 
 			Reveal.addEventListener('ShowGraph00', function() {

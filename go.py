@@ -128,7 +128,7 @@ class GraphSocketHandler(tornado.websocket.WebSocketHandler):
         logging.info("disconnected")
 
     def on_message(self, message):
-        logging.info("got ping %r", message)
+        logging.info("ping")
 
 class TimerClass(threading.Thread):
     def __init__(self, timeseries):

@@ -1,6 +1,10 @@
 function WebSocketDataProvider(ws_url, func_process_json) {
+    this.close = function() {
+        connection.close();
+    }
+
     var connection = new WebSocket(ws_url);
-    var ping_interval_millis = 2000;
+    var ping_interval_millis = 10000;
     
     connection.onopen = function() {
         connection.send_keep = true;

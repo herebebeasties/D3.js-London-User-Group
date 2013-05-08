@@ -11,7 +11,7 @@
 	<svg height="120" width="98%" id="g1"/>
 	<script>
 		var data = [];
-		var ws_data = WebSocketDataProvider('ws://localhost:8000/GraphSocket',
+		var ws_data = new WebSocketDataProvider('ws://localhost:8000/GraphSocket',
 			function(update){
 				data.push({
 					time: new Date(update.timestamp),

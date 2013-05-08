@@ -3,6 +3,7 @@ function StreamingGraph(data, selector, duration, tick_rate, error_threshold) {
     this.duration = duration;
     this.tick_rate = tick_rate;
     this.error_threshold = error_threshold;
+    this.done = false;
     
     var attachToElement = d3.select(selector);
     var uid = Math.random().toString(36).substr(2, 9);
@@ -32,6 +33,7 @@ function StreamingGraph(data, selector, duration, tick_rate, error_threshold) {
     }
     
     function tick() {
+        if (that.done) return;
         previous_tick = tick_history[0];
         tick_history.unshift(Date.now());  // push onto front
         tick_history.pop();
