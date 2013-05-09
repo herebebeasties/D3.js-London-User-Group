@@ -8,10 +8,10 @@
 	<link rel="stylesheet" href="demo.css" />
 </head>
 <body>
-	<svg height="120" width="98%" id="g1"/>
+	<svg height="180" width="100%" id="g1"/>
 	<script>
 		var data = [];
-		var ws_data = new WebSocketDataProvider('ws://localhost:8000/GraphSocket',
+		var ws_data = new WebSocketDataProvider('ws://' + window.location.host + '/GraphSocket',
 			function(update){
 				data.push({
 					time: new Date(update.timestamp),
